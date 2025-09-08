@@ -1,10 +1,10 @@
-// File: frontend/components/EditPageModal.tsx
+// File: frontend/components/EditPageModal.tsx (Corrected)
 
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios'; // Import isAxiosError
 import { useAuth } from '@/context/AuthContext';
 
 // Define the shape of the page data we expect
@@ -45,9 +45,8 @@ export default function EditPageModal({ isOpen, onClose, onPageUpdated, initialD
     }
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await axios.put(
-        `${apiUrl}/pages/me`,
+        'http://127.0.0.1:8000/pages/me',
         {
           title,
           description,
@@ -62,8 +61,13 @@ export default function EditPageModal({ isOpen, onClose, onPageUpdated, initialD
       // Send the updated data back to the dashboard page
       onPageUpdated(response.data);
       onClose(); // Close the modal
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to update page.');
+    } catch (err) {
+      // Correctly type the error
+      if (isAxiosError(err) && err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError('Failed to update page.');
+      }
     }
   };
 
