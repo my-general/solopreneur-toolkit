@@ -1,10 +1,10 @@
-// File: frontend/components/EditProductModal.tsx
+// File: frontend/components/EditProductModal.tsx (Corrected)
 
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios'; // Import isAxiosError
 import { useAuth } from '@/context/AuthContext';
 
 // Define the shape of a product
@@ -44,9 +44,8 @@ export default function EditProductModal({ isOpen, onClose, onProductUpdated, pr
     if (!product) return;
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const response = await axios.put(
-        `${apiUrl}/products/${product.id}`,
+        `http://127.0.0.1:8000/products/${product.id}`,
         {
           name,
           description,
@@ -57,15 +56,19 @@ export default function EditProductModal({ isOpen, onClose, onProductUpdated, pr
 
       onProductUpdated(response.data);
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to update product.');
+    } catch (err) {
+      // Correctly type the error
+      if (isAxiosError(err) && err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError('Failed to update product.');
+      }
     }
   };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
-        {/* ... The Transition and Dialog structure is the same as AddProductModal ... */}
         <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
           <div className="fixed inset-0 bg-black bg-opacity-25" />
         </Transition.Child>
