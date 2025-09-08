@@ -3,7 +3,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import axios, { isAxiosError } from 'axios';
+import axios from 'axios'; // REMOVED isAxiosError from here
 import { useParams } from 'next/navigation';
 
 // --- Type Definitions ---
@@ -42,7 +42,7 @@ export default function PublicPage() {
       try {
         const response = await axios.get(`http://127.0.0.1:8000/pages/${slug}`);
         setPageData(response.data);
-      } catch (_err) { // Renamed to _err to indicate it's unused
+      } catch (_err) {
         setError('This page could not be found.');
       } finally {
         setIsLoading(false);
@@ -89,7 +89,7 @@ export default function PublicPage() {
       setCart([]);
       setCustomerName('');
       setCustomerPhone('');
-    } catch (_err) { // Renamed to _err to indicate it's unused
+    } catch (_err) {
       setOrderError('There was an error placing your order. Please try again.');
     } finally {
       setIsSubmitting(false);
