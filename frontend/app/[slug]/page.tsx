@@ -1,9 +1,9 @@
-// File: frontend/app/[slug]/page.tsx (Modern, Responsive, and Functional)
+// File: frontend/app/[slug]/page.tsx (Corrected)
 
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import { useParams } from 'next/navigation';
 
 // --- Type Definitions ---
@@ -26,7 +26,6 @@ export default function PublicPage() {
   const params = useParams();
   const slug = params.slug as string;
 
-  // --- State Management ---
   const [pageData, setPageData] = useState<PageData | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -37,15 +36,13 @@ export default function PublicPage() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState('');
 
-  // --- Data Fetching ---
   useEffect(() => {
     if (!slug) return;
     const fetchPageData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await axios.get(`${apiUrl}/pages/${slug}`);
+        const response = await axios.get(`http://127.0.0.1:8000/pages/${slug}`);
         setPageData(response.data);
-      } catch (err) {
+      } catch (_err) { // Renamed to _err to indicate it's unused
         setError('This page could not be found.');
       } finally {
         setIsLoading(false);
@@ -54,7 +51,6 @@ export default function PublicPage() {
     fetchPageData();
   }, [slug]);
 
-  // --- Cart Logic ---
   const updateCartQuantity = (product: Product, newQuantity: number) => {
     setCart((currentCart) => {
       if (newQuantity <= 0) {
@@ -74,7 +70,6 @@ export default function PublicPage() {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   }, [cart]);
   
-  // --- Order Submission ---
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) { setOrderError('Your cart is empty.'); return; }
@@ -89,20 +84,18 @@ export default function PublicPage() {
         customer_phone: customerPhone,
         items: cart.map(item => ({ product_id: item.id, quantity: item.quantity })),
       };
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      await axios.post(`${apiUrl}/orders/${slug}`, orderData);
+      await axios.post(`http://127.0.0.1:8000/orders/${slug}`, orderData);
       setOrderSuccess(true);
       setCart([]);
       setCustomerName('');
       setCustomerPhone('');
-    } catch (err) {
+    } catch (_err) { // Renamed to _err to indicate it's unused
       setOrderError('There was an error placing your order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // --- Render States ---
   if (isLoading) return <div className="flex h-screen items-center justify-center"><p>Loading Storefront...</p></div>;
   if (error) return <div className="flex h-screen items-center justify-center"><p className="text-red-500">{error}</p></div>;
   if (!pageData) return null;
@@ -132,10 +125,8 @@ export default function PublicPage() {
           <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600">{pageData.description || 'Welcome to my page!'}</p>
         </header>
 
-        {/* --- Main Content Layout --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 md:gap-8 lg:gap-12">
           
-          {/* --- Product List (Left Column) --- */}
           <div className="md:col-span-2">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Products & Services</h2>
             <div className="space-y-4">
@@ -171,7 +162,6 @@ export default function PublicPage() {
             </div>
           </div>
 
-          {/* --- Order Form & Cart (Right Column, Sticky on Desktop) --- */}
           <div className="md:col-span-1">
             <div className="md:sticky md:top-8">
               <form onSubmit={handleSubmitOrder} className="mt-10 md:mt-0 rounded-lg bg-white p-6 shadow-lg">
