@@ -1,11 +1,18 @@
+// File: frontend/components/CreateFirstPage.tsx (Corrected)
+
 'use client';
 
 import { useState } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { useAuth } from '@/context/AuthContext';
 
+// Define the types to satisfy TypeScript
+interface Product { id: number; name: string; price: number; description: string | null; }
+interface PageData { title: string; description: string | null; products: Product[]; }
+
+// Update the props to use the specific PageData type
 interface CreateFirstPageProps {
-  onPageCreated: (newPageData: any) => void;
+  onPageCreated: (newPageData: PageData) => void;
 }
 
 export default function CreateFirstPage({ onPageCreated }: CreateFirstPageProps) {
@@ -22,10 +29,13 @@ export default function CreateFirstPage({ onPageCreated }: CreateFirstPageProps)
     }
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/pages/', { title, description }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(
+        'http://127.0.0.1:8000/pages/',
+        { title, description },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       onPageCreated(response.data);
     } catch (err) {
-      // Correctly type the error
       if (isAxiosError(err) && err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else {
@@ -39,7 +49,6 @@ export default function CreateFirstPage({ onPageCreated }: CreateFirstPageProps)
       <div className="w-full max-w-2xl rounded-lg bg-white p-8 text-center shadow-lg">
         <h2 className="text-3xl font-bold text-gray-800">Welcome to Your Toolkit!</h2>
         <p className="mt-2 text-gray-600">
-          {/* Fixed apostrophe */}
           Let&apos;s get started by creating your main page. This is what your customers will see.
         </p>
         <form onSubmit={handleSubmit} className="mt-8 text-left">
