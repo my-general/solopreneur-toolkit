@@ -1,3 +1,5 @@
+// File: frontend/components/AddProductModal.tsx (Corrected)
+
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
@@ -5,10 +7,19 @@ import { Fragment, useState } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { useAuth } from '@/context/AuthContext';
 
+// Define the shape of a product to satisfy TypeScript
+interface Product {
+  id: number;
+  name: string;
+  description: string | null;
+  price: number;
+}
+
+// Update the props to use the specific Product type
 interface AddProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onProductAdded: (newProduct: any) => void;
+  onProductAdded: (newProduct: Product) => void;
 }
 
 export default function AddProductModal({ isOpen, onClose, onProductAdded }: AddProductModalProps) {
@@ -28,14 +39,17 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     }
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/products/', { name, description, price: parseFloat(price) }, { headers: { Authorization: `Bearer ${token}` } });
+      const response = await axios.post(
+        'http://127.0.0.1:8000/products/',
+        { name, description, price: parseFloat(price) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       onProductAdded(response.data);
       onClose();
       setName('');
       setDescription('');
       setPrice('');
     } catch (err) {
-      // Correctly type the error
       if (isAxiosError(err) && err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else {
@@ -43,8 +57,7 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
       }
     }
   };
-  
-  // JSX is the same
+
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
