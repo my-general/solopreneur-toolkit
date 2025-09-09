@@ -1,10 +1,13 @@
-// File: frontend/components/CreateFirstPage.tsx (Corrected)
+// File: frontend/components/CreateFirstPage.tsx (Corrected for Production)
 
 'use client';
 
 import { useState } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { useAuth } from '@/context/AuthContext';
+
+// 1. Get the API URL from the environment variable.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 // Define the types to satisfy TypeScript
 interface Product { id: number; name: string; price: number; description: string | null; }
@@ -29,8 +32,9 @@ export default function CreateFirstPage({ onPageCreated }: CreateFirstPageProps)
     }
 
     try {
+      // 2. Use the API_URL variable here.
       const response = await axios.post(
-        'http://127.0.0.1:8000/pages/',
+        `${API_URL}/pages/`,
         { title, description },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -53,11 +57,21 @@ export default function CreateFirstPage({ onPageCreated }: CreateFirstPageProps)
         </p>
         <form onSubmit={handleSubmit} className="mt-8 text-left">
           <div className="space-y-4">
-            <div><label htmlFor="title" className="block text-sm font-medium text-gray-700">Your Page Title</label><input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g., The Jubilee Hills Baker, Yoga with Anjali" required /></div>
-            <div><label htmlFor="description" className="block text-sm font-medium text-gray-700">Short Description (Optional)</label><textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g., Freshly baked goods delivered to your door." /></div>
+            <div>
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700">Your Page Title</label>
+              <input type="text" id="title" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g., The Jubilee Hills Baker, Yoga with Anjali" required />
+            </div>
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">Short Description (Optional)</label>
+              <textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="e.g., Freshly baked goods delivered to your door." />
+            </div>
           </div>
           {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
-          <div className="mt-6"><button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-3 text-white shadow-lg transition-colors hover:bg-indigo-700">Create My Page</button></div>
+          <div className="mt-6">
+            <button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-3 text-white shadow-lg transition-colors hover:bg-indigo-700">
+              Create My Page
+            </button>
+          </div>
         </form>
       </div>
     </div>
