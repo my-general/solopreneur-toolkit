@@ -1,11 +1,14 @@
-// File: frontend/components/EditPageModal.tsx (Corrected)
+// File: frontend/components/EditPageModal.tsx (Corrected for Production)
 
 'use client';
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState, useEffect } from 'react';
-import axios, { isAxiosError } from 'axios'; // Import isAxiosError
+import axios, { isAxiosError } from 'axios';
 import { useAuth } from '@/context/AuthContext';
+
+// 1. Get the API URL from the environment variable.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 // Define the shape of the page data we expect
 interface PageData {
@@ -45,8 +48,9 @@ export default function EditPageModal({ isOpen, onClose, onPageUpdated, initialD
     }
 
     try {
+      // 2. Use the API_URL variable here.
       const response = await axios.put(
-        'http://127.0.0.1:8000/pages/me',
+        `${API_URL}/pages/me`,
         {
           title,
           description,
@@ -62,7 +66,6 @@ export default function EditPageModal({ isOpen, onClose, onPageUpdated, initialD
       onPageUpdated(response.data);
       onClose(); // Close the modal
     } catch (err) {
-      // Correctly type the error
       if (isAxiosError(err) && err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else {
