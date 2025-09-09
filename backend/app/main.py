@@ -19,6 +19,7 @@ app = FastAPI(
 # --- CORS Configuration ---
 origins = [
     "http://localhost:3000",
+    "https://gentle-hill-000ab8500.1.azurestaticapps.net",
 ]
 
 app.add_middleware(
@@ -40,4 +41,5 @@ app.include_router(orders.router, prefix="/orders", tags=["Orders"])
 @app.get("/")
 def read_root():
     """A simple root endpoint to confirm the API is running."""
+
     return {"status": "ok", "message": "Welcome to the Solopreneur Toolkit API!"}
