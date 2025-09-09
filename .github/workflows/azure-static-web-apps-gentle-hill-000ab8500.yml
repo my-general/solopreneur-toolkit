@@ -1,5 +1,5 @@
-# This is the final, corrected workflow file.
-# It provides the required environment variable during the build process.
+# This is the final, definitive workflow file for the frontend.
+# It correctly specifies the 'standalone' output location.
 
 name: Azure Static Web Apps CI/CD
 
@@ -18,25 +18,25 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-      - uses: actions/checkout@v4 # Updated to the latest version
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GENTLE_HILL_000AB8500 }} # Your specific token is preserved
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GENTLE_HILL_000AB8500 }} # Your specific token
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           ###### Repository/Build Configurations ######
           app_location: "/frontend"
           api_location: ""
-          output_location: ""
+          # THIS IS THE CRITICAL FIX:
+          # This tells Azure that the final app is located inside the
+          # .next/standalone/ folder created by the 'output: standalone' build.
+          output_location: ".next/standalone"
           ###### End of Repository/Build Configurations ######
         env:
-          # THIS IS THE CRITICAL FIX:
-          # This line injects the secret we created into the build process.
-          # The name must be NEXT_PUBLIC_API_URL to be accessible by your code.
           NEXT_PUBLIC_API_URL: ${{ secrets.AZURE_STATIC_WEB_APPS_API_URL }}
 
   close_pull_request_job:
