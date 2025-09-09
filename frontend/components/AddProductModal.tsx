@@ -1,4 +1,4 @@
-// File: frontend/components/AddProductModal.tsx (Corrected)
+// File: frontend/components/AddProductModal.tsx (Corrected for Production)
 
 'use client';
 
@@ -6,6 +6,9 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { useAuth } from '@/context/AuthContext';
+
+// 1. Get the API URL from the environment variable.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 // Define the shape of a product to satisfy TypeScript
 interface Product {
@@ -39,8 +42,9 @@ export default function AddProductModal({ isOpen, onClose, onProductAdded }: Add
     }
 
     try {
+      // 2. Use the API_URL variable here.
       const response = await axios.post(
-        'http://127.0.0.1:8000/products/',
+        `${API_URL}/products/`,
         { name, description, price: parseFloat(price) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
