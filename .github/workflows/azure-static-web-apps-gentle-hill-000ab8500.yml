@@ -1,6 +1,3 @@
-# This is the final, definitive workflow file for the frontend.
-# It correctly specifies the 'standalone' output location.
-
 name: Azure Static Web Apps CI/CD
 
 on:
@@ -21,21 +18,36 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Adjust to match your project's Node.js version
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Clean SWC and Next.js cache (api_build_command)
+        run: |
+          rm -rf ./node_modules/@next/swc-*
+          rm -rf ./.next/cache
+        working-directory: ./frontend
+
+      - name: Build application (app_build_command)
+        run: npm run build
+        working-directory: ./frontend
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GENTLE_HILL_000AB8500 }} # Your specific token
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_GENTLE_HILL_000AB8500 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          ###### Repository/Build Configurations ######
           app_location: "/frontend"
           api_location: ""
-          # THIS IS THE CRITICAL FIX:
-          # This tells Azure that the final app is located inside the
-          # .next/standalone/ folder created by the 'output: standalone' build.
           output_location: ".next/standalone"
-          ###### End of Repository/Build Configurations ######
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.AZURE_STATIC_WEB_APPS_API_URL }}
 
