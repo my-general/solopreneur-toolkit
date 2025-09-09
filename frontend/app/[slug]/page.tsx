@@ -1,10 +1,13 @@
-// File: frontend/app/[slug]/page.tsx (Corrected)
+// File: frontend/app/[slug]/page.tsx (Corrected for Production)
 
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import axios from 'axios'; // REMOVED isAxiosError from here
+import axios from 'axios';
 import { useParams } from 'next/navigation';
+
+// 1. Get the API URL from the environment variable.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 // --- Type Definitions ---
 interface Product {
@@ -26,6 +29,7 @@ export default function PublicPage() {
   const params = useParams();
   const slug = params.slug as string;
 
+  // --- State Management ---
   const [pageData, setPageData] = useState<PageData | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -36,11 +40,13 @@ export default function PublicPage() {
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [orderError, setOrderError] = useState('');
 
+  // --- Data Fetching ---
   useEffect(() => {
     if (!slug) return;
     const fetchPageData = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/pages/${slug}`);
+        // 2. Use the API_URL variable here.
+        const response = await axios.get(`${API_URL}/pages/${slug}`);
         setPageData(response.data);
       } catch (_err) {
         setError('This page could not be found.');
@@ -51,6 +57,7 @@ export default function PublicPage() {
     fetchPageData();
   }, [slug]);
 
+  // --- Cart Logic ---
   const updateCartQuantity = (product: Product, newQuantity: number) => {
     setCart((currentCart) => {
       if (newQuantity <= 0) {
@@ -70,6 +77,7 @@ export default function PublicPage() {
     return cart.reduce((total, item) => total + item.price * item.quantity, 0);
   }, [cart]);
   
+  // --- Order Submission ---
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) { setOrderError('Your cart is empty.'); return; }
@@ -84,7 +92,8 @@ export default function PublicPage() {
         customer_phone: customerPhone,
         items: cart.map(item => ({ product_id: item.id, quantity: item.quantity })),
       };
-      await axios.post(`http://127.0.0.1:8000/orders/${slug}`, orderData);
+      // 3. Use the API_URL variable here.
+      await axios.post(`${API_URL}/orders/${slug}`, orderData);
       setOrderSuccess(true);
       setCart([]);
       setCustomerName('');
@@ -96,6 +105,7 @@ export default function PublicPage() {
     }
   };
 
+  // --- Render States ---
   if (isLoading) return <div className="flex h-screen items-center justify-center"><p>Loading Storefront...</p></div>;
   if (error) return <div className="flex h-screen items-center justify-center"><p className="text-red-500">{error}</p></div>;
   if (!pageData) return null;
