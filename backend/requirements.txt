@@ -1,11 +1,11 @@
-# Core Framework
+# Core framework
 fastapi==0.110.3
 
-# ASGI Server with necessary extras
-uvicorn[standard]==0.18.3  # latest stable as of now
+# ASGI server with standard extras (needed for uvicorn workers)
+uvicorn[standard]==0.23.2
 
-# Pydantic (compatible with FastAPI 0.110.3)
-pydantic>=2.0,<3.0
+# Process manager
+gunicorn==21.2.0
 
 # Optional FastAPI extras
 email-validator==2.3.0
@@ -15,7 +15,7 @@ python-multipart==0.0.20
 orjson==3.11.3
 ujson==5.11.0
 
-# Other dependencies you already use
+# Additional dependencies from your stack
 annotated-types==0.7.0
 anyio==4.10.0
 bcrypt==4.3.0
@@ -42,6 +42,7 @@ passlib==1.7.4
 psycopg2-binary==2.9.10
 pyasn1==0.6.1
 pycparser==2.22
+pydantic>=2.0,<3.0
 pydantic-extra-types==2.10.5
 pydantic-settings==2.10.1
 Pygments==2.19.2
