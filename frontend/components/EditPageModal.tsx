@@ -1,4 +1,4 @@
-// File: frontend/components/EditPageModal.tsx (Corrected for Production)
+// File: frontend/components/EditProductModal.tsx (Corrected for Production)
 
 'use client';
 
@@ -10,66 +10,61 @@ import { useAuth } from '@/context/AuthContext';
 // 1. Get the API URL from the environment variable.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
-// Define the shape of the page data we expect
-interface PageData {
-  title: string;
+// Define the shape of a product
+interface Product {
+  id: number;
+  name: string;
   description: string | null;
+  price: number;
 }
 
 // Define the props for this component
-interface EditPageModalProps {
+interface EditProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onPageUpdated: (updatedPageData: PageData) => void;
-  initialData: PageData;
+  onProductUpdated: (updatedProduct: Product) => void;
+  product: Product | null;
 }
 
-export default function EditPageModal({ isOpen, onClose, onPageUpdated, initialData }: EditPageModalProps) {
+export default function EditProductModal({ isOpen, onClose, onProductUpdated, product }: EditProductModalProps) {
   const { token } = useAuth();
-  const [title, setTitle] = useState('');
+  const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
   const [error, setError] = useState('');
 
-  // When the modal opens, pre-fill the form with the current page data
+  // Pre-fill form when a product is passed in
   useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.title);
-      setDescription(initialData.description || '');
+    if (product) {
+      setName(product.name);
+      setDescription(product.description || '');
+      setPrice(String(product.price));
     }
-  }, [initialData, isOpen]);
+  }, [product, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    if (!title) {
-      setError('Page title cannot be empty.');
-      return;
-    }
+    if (!product) return;
 
     try {
       // 2. Use the API_URL variable here.
       const response = await axios.put(
-        `${API_URL}/pages/me`,
+        `${API_URL}/products/${product.id}`,
         {
-          title,
+          name,
           description,
+          price: parseFloat(price),
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Send the updated data back to the dashboard page
-      onPageUpdated(response.data);
-      onClose(); // Close the modal
+      onProductUpdated(response.data);
+      onClose();
     } catch (err) {
       if (isAxiosError(err) && err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else {
-        setError('Failed to update page.');
+        setError('Failed to update product.');
       }
     }
   };
@@ -80,33 +75,32 @@ export default function EditPageModal({ isOpen, onClose, onPageUpdated, initialD
         <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in duration-200" leaveFrom="opacity-100" leaveTo="opacity-0">
           <div className="fixed inset-0 bg-black bg-opacity-25" />
         </Transition.Child>
-
         <div className="fixed inset-0 overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4 text-center">
             <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
-                  Edit Your Page Details
+                  Edit Product
                 </Dialog.Title>
                 <form onSubmit={handleSubmit} className="mt-4">
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="edit-title" className="block text-sm font-medium text-gray-700">Page Title</label>
-                      <input type="text" id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                      <label htmlFor="edit-prod-name" className="block text-sm font-medium text-gray-700">Name</label>
+                      <input type="text" id="edit-prod-name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
                     </div>
                     <div>
-                      <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700">Description</label>
-                      <textarea id="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                      <label htmlFor="edit-prod-desc" className="block text-sm font-medium text-gray-700">Description</label>
+                      <textarea id="edit-prod-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                    </div>
+                    <div>
+                      <label htmlFor="edit-prod-price" className="block text-sm font-medium text-gray-700">Price (₹)</label>
+                      <input type="number" id="edit-prod-price" value={price} onChange={(e) => setPrice(e.target.value)} min="0" step="0.01" className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
                     </div>
                   </div>
                   {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
                   <div className="mt-6 flex justify-end space-x-2">
-                    <button type="button" onClick={onClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
-                      Cancel
-                    </button>
-                    <button type="submit" className="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
-                      Save Changes
-                    </button>
+                    <button type="button" onClick={onClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Cancel</button>
+                    <button type="submit" className="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">Save Changes</button>
                   </div>
                 </form>
               </Dialog.Panel>
