@@ -1,33 +1,40 @@
-# This is the final, corrected workflow file.
-# It packages the contents of the backend folder, not the folder itself.
-
-name: Build and deploy Python app to Azure Web App - solopreneur-toolkit-api-2025
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python version
-        uses: actions/setup-python@v5
-        with:
+       with:
           python-version: '3.10'
 
       - name: Install dependencies
+        # THE FIX: Tell the runner to work inside the 'backend' folder
         working-directory: ./backend
-        run: pip install -r requirements.txt
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+      
+
+
+
+      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
+
+      - name: Upload artifact for deployment jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-app
+          # THE FIX: Only upload the backend code
+          path: |
+            backend/
+            !backend/venv/
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: python-app
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -38,10 +45,7 @@ jobs:
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
         with:
           app-name: 'solopreneur-toolkit-api-2025'
           slot-name: 'Production'
-          # THIS IS THE CRITICAL FIX:
-          # This tells the deployment to use the contents of the 'backend' folder
-          # as the root of the application.
-          package: backend/
