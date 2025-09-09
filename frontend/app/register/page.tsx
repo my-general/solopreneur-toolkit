@@ -1,9 +1,13 @@
-'use client';
+'use client'; 
 
 import { useState } from 'react';
-import axios, { isAxiosError } from 'axios'; // Import isAxiosError
+import axios, { isAxiosError } from 'axios';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+
+// 1. Get the API URL from the environment variable.
+// This will be the live URL in Azure, and the local URL on your machine.
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -13,7 +17,7 @@ export default function RegisterPage() {
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault(); 
     setError('');
     setSuccess('');
 
@@ -23,8 +27,8 @@ export default function RegisterPage() {
     }
 
     try {
-      // The 'response' variable is no longer needed here
-      await axios.post('http://127.0.0.1:8000/users/', {
+      // 2. Use the API_URL variable here.
+      await axios.post(`${API_URL}/users/`, {
         email: email,
         password: password,
       });
@@ -35,7 +39,6 @@ export default function RegisterPage() {
       setTimeout(() => router.push('/login'), 2000);
 
     } catch (err) {
-      // Correctly type the error
       if (isAxiosError(err) && err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else {
@@ -44,7 +47,6 @@ export default function RegisterPage() {
     }
   };
   
-  // The JSX part is the same, but included for completeness
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-lg">
@@ -62,7 +64,11 @@ export default function RegisterPage() {
           </div>
           {success && <p className="mb-4 text-center text-green-600">{success}</p>}
           {error && <p className="mb-4 text-center text-red-600">{error}</p>}
-          <div><button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white shadow-lg transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">Register</button></div>
+          <div>
+            <button type="submit" className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white shadow-lg transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+              Register
+            </button>
+          </div>
         </form>
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{' '}
