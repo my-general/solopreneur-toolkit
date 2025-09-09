@@ -1,4 +1,4 @@
-// File: frontend/components/EditProductModal.tsx (Corrected for Production)
+// File: frontend/components/EditPageModal.tsx (Corrected)
 
 'use client';
 
@@ -7,64 +7,54 @@ import { Fragment, useState, useEffect } from 'react';
 import axios, { isAxiosError } from 'axios';
 import { useAuth } from '@/context/AuthContext';
 
-// 1. Get the API URL from the environment variable.
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
 
-// Define the shape of a product
-interface Product {
-  id: number;
-  name: string;
+interface PageData {
+  title: string;
   description: string | null;
-  price: number;
 }
 
-// Define the props for this component
-interface EditProductModalProps {
+// THIS IS THE FIX: The interface name was wrong.
+interface EditPageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onProductUpdated: (updatedProduct: Product) => void;
-  product: Product | null;
+  onPageUpdated: (updatedPageData: PageData) => void;
+  initialData: PageData;
 }
 
-export default function EditProductModal({ isOpen, onClose, onProductUpdated, product }: EditProductModalProps) {
+export default function EditPageModal({ isOpen, onClose, onPageUpdated, initialData }: EditPageModalProps) {
   const { token } = useAuth();
-  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
   const [error, setError] = useState('');
 
-  // Pre-fill form when a product is passed in
   useEffect(() => {
-    if (product) {
-      setName(product.name);
-      setDescription(product.description || '');
-      setPrice(String(product.price));
+    if (initialData) {
+      setTitle(initialData.title);
+      setDescription(initialData.description || '');
     }
-  }, [product, isOpen]);
+  }, [initialData, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!product) return;
-
+    setError('');
+    if (!title) {
+      setError('Page title cannot be empty.');
+      return;
+    }
     try {
-      // 2. Use the API_URL variable here.
       const response = await axios.put(
-        `${API_URL}/products/${product.id}`,
-        {
-          name,
-          description,
-          price: parseFloat(price),
-        },
+        `${API_URL}/pages/me`,
+        { title, description },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      onProductUpdated(response.data);
+      onPageUpdated(response.data);
       onClose();
     } catch (err) {
       if (isAxiosError(err) && err.response?.data?.detail) {
         setError(err.response.data.detail);
       } else {
-        setError('Failed to update product.');
+        setError('Failed to update page.');
       }
     }
   };
@@ -80,27 +70,27 @@ export default function EditProductModal({ isOpen, onClose, onProductUpdated, pr
             <Transition.Child as={Fragment} enter="ease-out duration-300" enterFrom="opacity-0 scale-95" enterTo="opacity-100 scale-100" leave="ease-in duration-200" leaveFrom="opacity-100 scale-100" leaveTo="opacity-0 scale-95">
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
-                  Edit Product
+                  Edit Your Page Details
                 </Dialog.Title>
                 <form onSubmit={handleSubmit} className="mt-4">
                   <div className="space-y-4">
                     <div>
-                      <label htmlFor="edit-prod-name" className="block text-sm font-medium text-gray-700">Name</label>
-                      <input type="text" id="edit-prod-name" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                      <label htmlFor="edit-title" className="block text-sm font-medium text-gray-700">Page Title</label>
+                      <input type="text" id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
                     </div>
                     <div>
-                      <label htmlFor="edit-prod-desc" className="block text-sm font-medium text-gray-700">Description</label>
-                      <textarea id="edit-prod-desc" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
-                    </div>
-                    <div>
-                      <label htmlFor="edit-prod-price" className="block text-sm font-medium text-gray-700">Price (₹)</label>
-                      <input type="number" id="edit-prod-price" value={price} onChange={(e) => setPrice(e.target.value)} min="0" step="0.01" className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                      <label htmlFor="edit-description" className="block text-sm font-medium text-gray-700">Description</label>
+                      <textarea id="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
                     </div>
                   </div>
                   {error && <p className="mt-4 text-center text-sm text-red-600">{error}</p>}
                   <div className="mt-6 flex justify-end space-x-2">
-                    <button type="button" onClick={onClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Cancel</button>
-                    <button type="submit" className="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">Save Changes</button>
+                    <button type="button" onClick={onClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">
+                      Cancel
+                    </button>
+                    <button type="submit" className="rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
+                      Save Changes
+                    </button>
                   </div>
                 </form>
               </Dialog.Panel>
