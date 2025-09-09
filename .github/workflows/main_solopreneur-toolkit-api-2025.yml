@@ -1,5 +1,5 @@
 # This is the final, corrected workflow file.
-# It delegates the build process to Azure.
+# It packages the contents of the backend folder, not the folder itself.
 
 name: Build and deploy Python app to Azure Web App - solopreneur-toolkit-api-2025
 
@@ -10,29 +10,38 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # Required for login
-      contents: read # Required for checkout
+      id-token: write
+      contents: read
 
     steps:
-      # Step 1: Check out your repository code
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Step 2: Login to Azure
+      - name: Set up Python version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: pip install -r requirements.txt
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9063F53DE9104D7184598CDE6B6CA313 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_A06D0F6CB7E2443881AA9AD8BB97F8A6 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A8BB9FBD137347B6BEF843308B2FC03D }}
-      
-      # Step 3: Deploy the code to Azure App Service
-      # Azure's build system will now take over, using the PROJECT setting.
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
-        id: deploy-to-webapp
         with:
           app-name: 'solopreneur-toolkit-api-2025'
           slot-name: 'Production'
+          # THIS IS THE CRITICAL FIX:
+          # This tells the deployment to use the contents of the 'backend' folder
+          # as the root of the application.
+          package: backend/
