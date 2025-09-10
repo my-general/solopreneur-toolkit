@@ -21,7 +21,8 @@ origins = [
     "http://localhost:3000",
     "https://gentle-hill-000ab8500.1.azurestaticapps.net",
     #"https://solopreneur-toolkit-jchjqll1b-mys-projects-e11c9265.vercel.app",
-    "https://solopreneur-toolkit-ecm7q4czg-mys-projects-e11c9265.vercel.app",  
+    "https://solopreneur-toolkit-ahytvuhki-mys-projects-e11c9265.vercel.app/",
+    
 ]
 
 app.add_middleware(
@@ -45,5 +46,6 @@ def read_root():
     """A simple root endpoint to confirm the API is running."""
 
     return {"status": "ok", "message": "Welcome to the Solopreneur Toolkit API!"}
+
 
 
